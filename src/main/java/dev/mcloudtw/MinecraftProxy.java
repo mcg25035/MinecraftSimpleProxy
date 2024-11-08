@@ -6,14 +6,16 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.InputStream;
+import java.util.Map;
 
 public class MinecraftProxy {
-    private final int localPort;
+    private static int proxyPort;
+    private static int apiPort;
+    private static String apiKey;
     private static final EventLoopGroup clientGroup = new NioEventLoopGroup();
-
-    public MinecraftProxy(int localPort) {
-        this.localPort = localPort;
-    }
 
     public void start() throws InterruptedException {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -33,8 +35,8 @@ public class MinecraftProxy {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.AUTO_READ, false);
 
-            ChannelFuture future = bootstrap.bind(localPort).sync();
-            System.out.println("MinecraftProxy started，listen on port " + localPort);
+            ChannelFuture future = bootstrap.bind(proxyPort).sync();
+            System.out.println("MinecraftProxy started，listen on port " + proxyPort);
             future.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
@@ -43,8 +45,24 @@ public class MinecraftProxy {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        int localPort = 25599;
-        new MinecraftProxy(localPort).start();
+        loadConfig();
+        RoutingApiServer.start(apiKey, apiPort);
+        new MinecraftProxy().start();
+    }
+
+    private static void loadConfig() {
+        Yaml yaml = new Yaml();
+        try (InputStream in = MinecraftProxy.class.getResourceAsStream("/config.yml")) {
+            if (in == null) {
+                throw new RuntimeException("config.yml not found");
+            }
+            Map<String, Object> config = yaml.load(in);
+            apiKey = (String) config.get("apiKey");
+            proxyPort = (int) config.get("proxyPort");
+            apiPort = (int) config.get("apiPort");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load config.yml", e);
+        }
     }
 
     public static EventLoopGroup getClientGroup() {

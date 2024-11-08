@@ -22,17 +22,16 @@ public class ProxyBackendHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (inboundChannel.isActive()) {
-            // 保持引用
-            ReferenceCountUtil.retain(msg);
-            inboundChannel.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {
-                if (!future.isSuccess()) {
-                    future.channel().close();
-                }
-            });
-        } else {
+        if (!inboundChannel.isActive()) {
             ReferenceCountUtil.release(msg);
+            return;
         }
+
+        ReferenceCountUtil.retain(msg);
+        inboundChannel.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {
+            if (!future.isSuccess()) return;
+            future.channel().close();
+        });
     }
 
     @Override
