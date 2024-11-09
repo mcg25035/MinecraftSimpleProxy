@@ -8,7 +8,10 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class MinecraftProxy {
@@ -52,7 +55,7 @@ public class MinecraftProxy {
 
     private static void loadConfig() {
         Yaml yaml = new Yaml();
-        try (InputStream in = MinecraftProxy.class.getResourceAsStream("/config.yml")) {
+        try (InputStream in = new FileInputStream(Paths.get("config.yml").toFile())) {
             if (in == null) {
                 throw new RuntimeException("config.yml not found");
             }

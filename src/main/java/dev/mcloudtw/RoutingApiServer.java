@@ -30,10 +30,10 @@ public class RoutingApiServer {
 
         // Define routes
         app.get("/routes", getAllRoutesHandler);
-        app.get("/routes/:domain", getRouteHandler);
         app.post("/routes", createRouteHandler);
-        app.put("/routes/:domain", updateRouteHandler);
-        app.delete("/routes/:domain", deleteRouteHandler);
+        app.get("/routes/{domain}", getRouteHandler);
+        app.put("/routes/{domain}", updateRouteHandler);
+        app.delete("/routes/{domain}", deleteRouteHandler);
 
         // Global exception handler (optional)
         app.exception(Exception.class, (e, ctx) -> {
@@ -45,7 +45,7 @@ public class RoutingApiServer {
 
     // Middleware: Validate API Key
     private static void validateApiKey(Context ctx) throws UnauthorizedResponse {
-        String API_KEY_HEADER = "X-API-Key";
+        String API_KEY_HEADER = "x-api-key";
         String apiKey = ctx.header(API_KEY_HEADER);
         if (apiKey == null || !apiKey.equals(CONFIG_API_KEY)) {
             throw new UnauthorizedResponse("Unauthorized");

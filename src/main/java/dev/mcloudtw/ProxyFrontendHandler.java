@@ -75,10 +75,12 @@ public class ProxyFrontendHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        if (!(msg instanceof ByteBuf buf)) {
+        if (!(msg instanceof ByteBuf)) {
             ChannelUtils.closeOnFlush(ctx.channel());
             return;
         }
+
+        ByteBuf buf = (ByteBuf) msg;
 
 
         try {
