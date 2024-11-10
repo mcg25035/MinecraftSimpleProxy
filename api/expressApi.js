@@ -14,13 +14,12 @@ app.use(morgan('combined')); // Optional: Logs HTTP requests
 
 // API Key Authentication Middleware
 function authenticateApiKey(req, res, next) {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers['x-api-key'];
     if (!authHeader) {
         return res.status(401).json({ error: 'No API key provided' });
     }
 
-    const token = authHeader.split(' ')[1];
-    if (token !== process.env.API_KEY) {
+    if (authHeader !== process.env.API_KEY) {
         return res.status(403).json({ error: 'Invalid API key' });
     }
 
