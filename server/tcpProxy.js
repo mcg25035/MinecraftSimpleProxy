@@ -91,9 +91,7 @@ function getMinecraftDomain(data) {
         
         domain = domain.replace(/[^a-zA-Z0-9-.]/g, "");
 
-        if (domain.endsWith('FML3')) {
-            return domain.slice(0, -4);
-        } 
+        if (domain.endsWith('FML3')) domain = domain.slice(0, -4);
         while (domain.endsWith('.')) domain = domain.slice(0, -1);
 
         return domain;
