@@ -94,9 +94,7 @@ function getMinecraftDomain(data) {
         if (domain.endsWith('FML3')) {
             return domain.slice(0, -4);
         } 
-        if (domain.endsWith('.')) {
-            return domain.slice(0, -1);
-        }
+        while (domain.endsWith('.')) domain = domain.slice(0, -1);
 
         return domain;
     } catch (err) {
