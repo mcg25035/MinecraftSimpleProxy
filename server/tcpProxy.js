@@ -86,7 +86,7 @@ function getMinecraftDomain(data) {
         const addressLength = data[offset];
         offset += 1;
 
-        const domain = data.toString('utf8', offset, offset + addressLength);
+        let domain = data.toString('utf8', offset, offset + addressLength);
         domain = domain.replaceAll(" ", "");
         console.log('Domain:', domain);
         console.log('Domain:', domain.endsWith('FML3'));
