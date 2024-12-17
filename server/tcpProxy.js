@@ -88,11 +88,9 @@ function getMinecraftDomain(data) {
 
         let domain = data.toString('utf8', offset, offset + addressLength);
         domain = domain.replaceAll(" ", "");
-        // console.log(`Domain:'${domain}'`);
-        // console.log(`Domain:'${domain.endsWith('FML3')}'`);
-        // console.log("mc8a11puh0pe.mcstw.topFML3" === domain)
-        // console.log(domain.length)
-        console.log('Domain as ASCII codes:', domain.split('').map(char => char.charCodeAt(0)).join(' '));
+        
+        domain = domain.replace(/[^a-zA-Z0-9-]/g, "");
+
         if (domain.endsWith('FML3')) {
             return domain.slice(0, -4);
         } 
