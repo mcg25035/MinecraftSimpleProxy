@@ -87,6 +87,14 @@ function getMinecraftDomain(data) {
         offset += 1;
 
         const domain = data.toString('utf8', offset, offset + addressLength);
+
+        if (domain.endsWith('.FML3')) {
+            return domain.slice(0, -5);
+        } 
+        else if (domain.endsWith('.')) {
+            return domain.slice(0, -1);
+        }
+
         return domain;
     } catch (err) {
         console.error('Error parsing Minecraft domain:', err.message);
