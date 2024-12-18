@@ -106,6 +106,8 @@ function parseModernHandshake(data) {
     let offset = 0;
 
     try {
+        console.log('Data:', data.toString('hex'));
+        console.log('Data:', data);
         const { value: packetLength, bytesRead: lengthBytes } = readVarInt(data, offset);
         offset += lengthBytes;
 
