@@ -68,6 +68,26 @@ server.listen(LOCAL_PORT, () => {
     console.log(`TCP Proxy server listening on port ${LOCAL_PORT}`);
 });
 
+function removeInjectedIP(packet) {
+    const markerLength = 4; // 固定標記長度
+    const marker = packet.slice(0, markerLength).toString('utf8'); // 提取標記
+
+    if (marker !== "MCIP") {
+        throw new Error("Invalid packet: Missing MCIP marker.");
+    }
+
+    const ipLength = packet[markerLength]; // 提取 IP 長度
+    const totalInjectedLength = markerLength + 1 + ipLength; // 標記 + 長度字節 + IP 字節
+
+    if (packet.length < totalInjectedLength) {
+        throw new Error("Packet length mismatch with injected data length.");
+    }
+
+    // 返回移除注入部分的封包
+    return packet.slice(totalInjectedLength); // 移除標記、長度和 IP
+}
+
+
 // Function to extract the Minecraft domain from the initial data
 function getMinecraftDomain(data) {
     try {
@@ -89,11 +109,13 @@ function getMinecraftDomain(data) {
 // 舊版握手包解析邏輯 (以 0xFE 開頭)
 function parseLegacyHandshake(data) {
     try {
-        const start = 1; // 跳過開頭的 0xFE
-        const domainEnd = data.indexOf(0x00, start); // 舊版結構以 0x00 結尾
+        // 使用 removeInjectedIP 移除注入部分
+        const cleanedData = removeInjectedIP(data);
+
+        const domainEnd = cleanedData.indexOf(0x00); // 舊版結構以 0x00 結尾
         if (domainEnd === -1) throw new Error('Invalid legacy handshake packet.');
 
-        const domain = data.toString('utf8', start, domainEnd);
+        const domain = cleanedData.toString('utf8', 0, domainEnd); // 提取域名
         return domain;
     } catch (err) {
         console.error('Error parsing legacy handshake:', err.message);
@@ -101,33 +123,39 @@ function parseLegacyHandshake(data) {
     }
 }
 
+
+
 // 現代協議握手包解析邏輯 (以 VarInt 結構處理)
 function parseModernHandshake(data) {
     let offset = 0;
 
     try {
-        console.log('Data:', data.toString('hex'));
-        console.log('Data:', data);
-        const { value: packetLength, bytesRead: lengthBytes } = readVarInt(data, offset);
+        // 使用 removeInjectedIP 移除注入部分
+        const cleanedData = removeInjectedIP(data);
+        console.log('Cleaned Data (Hex):', cleanedData.toString('hex'));
+
+        // Parse cleaned packet
+        const { value: packetLength, bytesRead: lengthBytes } = readVarInt(cleanedData, offset);
         offset += lengthBytes;
 
-        const { value: packetId, bytesRead: idBytes } = readVarInt(data, offset);
+        const { value: packetId, bytesRead: idBytes } = readVarInt(cleanedData, offset);
         if (packetId !== 0x00) throw new Error("Invalid handshake packet ID.");
         offset += idBytes;
 
-        const { value: protocolVersion, bytesRead: versionBytes } = readVarInt(data, offset);
+        const { value: protocolVersion, bytesRead: versionBytes } = readVarInt(cleanedData, offset);
         offset += versionBytes;
 
-        const addressLength = data[offset];
+        const addressLength = cleanedData[offset];
         offset += 1;
 
-        const domain = data.toString('utf8', offset, offset + addressLength);
+        const domain = cleanedData.toString('utf8', offset, offset + addressLength);
         return sanitizeDomain(domain);
     } catch (err) {
         console.error('Error parsing modern handshake:', err.message);
         return null;
     }
 }
+
 
 function sanitizeDomain(domain) {
     // 移除所有非字母、数字、破折号和点号的字符
