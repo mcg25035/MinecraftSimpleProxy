@@ -28,8 +28,8 @@ function getMinecraftDomain(data) {
 // 舊版握手包解析邏輯 (以 0xFE 開頭)
 function parseLegacyHandshake(data) {
     try {
-        // 使用 removeInjectedIP 移除注入部分
-        const cleanedData = removeInjectedIP(data);
+        const cleanedData = Buffer.from(data); // Copy data to avoid mutation
+        console.log('Cleaned data:', cleanedData);
 
         const domainEnd = cleanedData.indexOf(0x00); // 舊版結構以 0x00 結尾
         if (domainEnd === -1) throw new Error('Invalid legacy handshake packet.');
@@ -49,9 +49,8 @@ function parseModernHandshake(data) {
     let offset = 0;
 
     try {
-        // 使用 removeInjectedIP 移除注入部分
-        const cleanedData = removeInjectedIP(data);
-        console.log('Cleaned Data (Hex):', cleanedData.toString('hex'));
+        const cleanedData = Buffer.from(data); // Copy data to avoid mutation
+        console.log('Cleaned data:', cleanedData);
 
         // Parse cleaned packet
         const { value: packetLength, bytesRead: lengthBytes } = readVarInt(cleanedData, offset);
