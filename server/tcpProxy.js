@@ -132,6 +132,8 @@ function extractInjectedIP(packet) {
     }
 
     const ip = packet.slice(markerLength + 1, totalInjectedLength).toString('utf8');
+
+    console.log(`Detected injected IP: ${ip}`);
     const data = packet.slice(totalInjectedLength); // Remaining packet data
 
     return { ip, data };
@@ -197,9 +199,8 @@ const server = net.createServer((clientSocket) => {
                 clientSocket.on('data', (data) => {
                     if (!loginProcessed) {
                         try {
-                            const { data: postExtractData } = extractInjectedIP(data);
                             const isLegacy = data[0] === 0xFE;
-                            handleLoginPhase(postExtractData, ip, isLegacy);
+                            handleLoginPhase(data, ip, isLegacy);
                             loginProcessed = true;
                         } catch (e) {
                             console.error(`Login processing error: ${e.message}`);
