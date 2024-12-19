@@ -1,3 +1,9 @@
+require('dotenv').config(); // Load environment variables
+
+const net = require('net');
+const domainRouting = require('../routes/domainRouting');
+
+const LOCAL_PORT = process.env.TCP_PROXY_PORT || 25565;
 /**
  * Extract injected IP and data from the packet.
  * @param {Buffer} packet - The packet with injected IP and marker.
@@ -128,3 +134,4 @@ const server = net.createServer((clientSocket) => {
 server.listen(LOCAL_PORT, () => {
     console.log(`TCP Proxy server listening on port ${LOCAL_PORT}`);
 });
+
