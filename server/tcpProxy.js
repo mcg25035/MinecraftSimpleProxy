@@ -3,13 +3,42 @@ require('dotenv').config(); // Load environment variables
 const net = require('net');
 const utils = require('../utils/protocolUtils');
 const domainRouting = require('../routes/domainRouting');
+const axios = require('axios');
 
 const LOCAL_PORT = process.env.TCP_PROXY_PORT || 25565;
+const MANAGER_ADDR = process.env.MANAGER_ADDR || '';
+const MANAGER_API_KEY = process.env.MANAGER_API_KEY || '';
 
 let connectionId = 0;
 
 function getNextConnectionId() {
     return connectionId++;
+}
+
+async function sendConnectionInfoToManager(ip, domain, username) {
+    if (!MANAGER_ADDR || !MANAGER_API_KEY) {
+        console.warn('Manager address or API key is not set');
+        return;
+    }
+
+    const url = `${MANAGER_ADDR}/api/connection-logs`;
+    const data = {
+        fullDomain: domain,
+        playerName: username,
+        playerIp: ip
+    };
+
+    try {
+        await axios.post(url, data, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': MANAGER_API_KEY
+            }
+        });
+        console.log('Connection info sent to manager');
+    } catch (error) {
+        console.error('Failed to send connection info to manager:', error.message);
+    }
 }
 
 // Start the TCP Proxy server
@@ -90,6 +119,10 @@ async function handleClientConnection(clientSocket) {
     logger.log('Connection target host: ' + target.host);
     logger.log('Connection target port: ' + target.port);
     logger.log('Connection injected IP: ' + ip);
+    
+    if (ip && domain && username) {
+        sendConnectionInfoToManager(ip, domain, username);
+    }
 
     // Set up connection to the remote server
     try {
