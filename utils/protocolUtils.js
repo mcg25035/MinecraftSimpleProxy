@@ -106,22 +106,17 @@ function parseModernHandshake(data) {
  * @returns {string} - Cleaned domain name
  */
 function sanitizeDomain(domain) {
-    // Remove all non-alphanumeric characters, dashes, and dots
-    domain = domain.replace(/[^a-zA-Z0-9-.]/g, "");
-
-    // Detect and remove Forge/NeoForge suffixes (FML suffix)
-    domain = domain.replace(/FML[0-9]*$/, "");
-
-    // Remove extra spaces
-    domain = domain.trim();
-
-    // Remove trailing dots
-    while (domain.endsWith('.')) {
-        domain = domain.slice(0, -1);
-    }
-
-    return domain;
-}
+    return domain
+      // Remove all non-alphanumeric characters, dashes, and dots
+      .replace(/[^a-zA-Z0-9-.]/g, '')
+      // Detect and remove Forge/NeoForge suffixes (FML suffix)
+      .replace(/FML\d*$/, '')
+      // Remove whitespace from both ends
+      .trim()
+      // Remove trailing dots
+      .replace(/\.+$/, '');
+  }
+  
 
 /**
  * Get domain from modern handshake packet
