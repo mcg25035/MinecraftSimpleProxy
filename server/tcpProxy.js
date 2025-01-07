@@ -77,7 +77,7 @@ async function handleClientConnection(clientSocket) {
     let initialData;
     try {
         logger.log('Waiting for initial data...');
-        initialData = await waitForData(clientSocket);
+        initialData = await waitForData(clientSocket, logger.log);
         logger.log('Received initial data');
     }
     catch {
@@ -156,14 +156,17 @@ async function handleClientConnection(clientSocket) {
 /**
  * Wait for the client to send data, collecting data until no new data is received for 250ms
  * @param {net.Socket} socket - Client socket connection
+ * @param {Function: (message: string) => void} logger - Logger function
  * @returns {Promise<Buffer>}
  */
-function waitForData(socket) {
+function waitForData(socket, logger) {
     return new Promise((resolve, reject) => {
         let collectedData = Buffer.alloc(0);
         let timeout;
+        let dataReceivedCounter = 0;
 
         const onData = (data) => {
+            logger(`#${++dataReceivedCounter} Received initial data (${data.length} bytes)`);
             collectedData = Buffer.concat([collectedData, data]);
             clearTimeout(timeout);
             timeout = setTimeout(() => {
