@@ -4,6 +4,7 @@ const net = require('net');
 const utils = require('../utils/protocolUtils');
 const domainRouting = require('../routes/domainRouting');
 const axios = require('axios');
+const mojangApiUtils = require('../utils/mojangApiUtils');
 
 const LOCAL_PORT = process.env.TCP_PROXY_PORT || 25565;
 const MANAGER_ADDR = process.env.MANAGER_ADDR || '';
@@ -15,7 +16,7 @@ function getNextConnectionId() {
     return connectionId++;
 }
 
-async function sendConnectionInfoToManager(ip, domain, username) {
+async function sendConnectionInfoToManager(ip, domain, username, uuid) {
     if (!MANAGER_ADDR || !MANAGER_API_KEY) {
         console.warn('Manager address or API key is not set');
         return;
@@ -25,7 +26,8 @@ async function sendConnectionInfoToManager(ip, domain, username) {
     const data = {
         fullDomain: domain,
         playerName: username,
-        playerIp: ip
+        playerIp: ip,
+        playerUuid: uuid
     };
 
     try {
@@ -106,7 +108,7 @@ async function handleClientConnection(clientSocket) {
 
     let domain, target, initialDataBuffer, username;
     try {
-        ({ domain, target, initialDataBuffer, username } = await handleInitialData(initialData, clientSocket, logger.log));
+        ({ domain, target, initialDataBuffer, username, uuid } = await handleInitialData(initialData, clientSocket, logger.log));
     }
     catch (err) {
         logger.warn(err.message);
@@ -118,10 +120,11 @@ async function handleClientConnection(clientSocket) {
     logger.log('Connection player: ' + username);
     logger.log('Connection target host: ' + target.host);
     logger.log('Connection target port: ' + target.port);
+    logger.log('Connection UUID: ' + uuid);
     logger.log('Connection injected IP: ' + ip);
     
     if (ip && domain && username) {
-        sendConnectionInfoToManager(ip, domain, username);
+        sendConnectionInfoToManager(ip, domain, username, uuid);
     }
 
     // Set up connection to the remote server
@@ -175,7 +178,7 @@ function waitForData(socket) {
  * @param {Buffer} data - Initial data sent by the client
  * @param {net.Socket} clientSocket - Client socket connection
  * @param {Function: (message: string) => void} logger - Logger function
- * @returns {Promise<{domain: string, target: object, initialDataBuffer: Buffer, username: string}>}
+ * @returns {Promise<{domain: string, target: object, initialDataBuffer: Buffer, username: string, uuid: string}>}
  */
 async function handleInitialData(data, clientSocket, logger) {
     let {domain, dataWithoutHandshakePacket: dataNext} = utils.getModernMinecraftDomain(data);
@@ -184,13 +187,14 @@ async function handleInitialData(data, clientSocket, logger) {
     }
     // utils.logHexData(dataNext, logger);
     let {username, _} = utils.getModernMinecraftUsername(dataNext);
+    let uuid = await mojangApiUtils.getPlayerUUID(username);
 
     const target = domainRouting.get(domain);
     if (!target) {
         throw new Error(`Unknown domain: ${domain}`);
     }
 
-    return { domain, target, initialDataBuffer: data , username};
+    return { domain, target, initialDataBuffer: data , username, uuid};
 }
 
 /**
