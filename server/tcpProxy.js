@@ -154,22 +154,43 @@ async function handleClientConnection(clientSocket) {
 }
 
 /**
- * Wait for the client to send data
+ * Wait for the client to send data, collecting data until no new data is received for 250ms
  * @param {net.Socket} socket - Client socket connection
  * @returns {Promise<Buffer>}
  */
 function waitForData(socket) {
     return new Promise((resolve, reject) => {
+        let collectedData = Buffer.alloc(0);
+        let timeout;
+
         const onData = (data) => {
-            socket.removeListener('error', onError);
-            resolve(data);
+            collectedData = Buffer.concat([collectedData, data]);
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                cleanup();
+                resolve(collectedData);
+            }, 250);
         };
+
         const onError = (err) => {
-            socket.removeListener('data', onData);
+            cleanup();
             reject(err);
         };
-        socket.once('data', onData);
+
+        const cleanup = () => {
+            socket.removeListener('data', onData);
+            socket.removeListener('error', onError);
+            clearTimeout(timeout);
+        };
+
+        socket.on('data', onData);
         socket.once('error', onError);
+
+        // Set initial timeout in case no data is received
+        timeout = setTimeout(() => {
+            cleanup();
+            resolve(collectedData);
+        }, 250);
     });
 }
 
