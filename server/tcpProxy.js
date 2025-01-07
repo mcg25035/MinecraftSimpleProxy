@@ -190,7 +190,7 @@ function waitForData(socket) {
         timeout = setTimeout(() => {
             cleanup();
             resolve(collectedData);
-        }, 250);
+        }, 10);
     });
 }
 
