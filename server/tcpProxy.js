@@ -22,7 +22,7 @@ async function sendConnectionInfoToManager(ip, domain, username, uuid) {
         return;
     }
 
-    const url = `${MANAGER_ADDR}/api/connection-logs`;
+    const url = `http://${MANAGER_ADDR}/api/connection-logs`;
     const data = {
         fullDomain: domain,
         playerName: username,
@@ -39,7 +39,7 @@ async function sendConnectionInfoToManager(ip, domain, username, uuid) {
         });
         console.log('Connection info sent to manager');
     } catch (error) {
-        console.error('Failed to send connection info to manager:', error.message);
+        console.error('Failed to send connection info to manager:', error);
     }
 }
 
