@@ -160,7 +160,8 @@ async function handleClientConnection(clientSocket) {
             return;
         }
     } catch (error) {
-        logger.warn('Failed to fetch firewall rules:', error.message);
+        logger.warn('Failed to fetch firewall rules:');
+        console.log(error);
         // If the request fails, we don't block the connection
     }
 
