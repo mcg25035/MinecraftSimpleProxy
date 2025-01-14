@@ -127,7 +127,7 @@ async function handleClientConnection(clientSocket) {
         sendConnectionInfoToManager(ip, domain, username, uuid);
     }
 
-    const thirdLevelDomain = domain.split('.').slice(-3).join('.');
+    const thirdLevelDomain = domain.split('.')[0];
     const firewallUrl = `${MANAGER_ADDR}/api/playerfirewall/domain/${thirdLevelDomain}`;
 
     try {
