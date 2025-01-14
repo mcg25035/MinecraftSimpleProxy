@@ -22,7 +22,7 @@ async function sendConnectionInfoToManager(ip, domain, username, uuid) {
         return;
     }
 
-    const url = `http://${MANAGER_ADDR}/api/connection-logs`;
+    const url = `${MANAGER_ADDR}/api/connection-logs`;
     const data = {
         fullDomain: domain,
         playerName: username,
