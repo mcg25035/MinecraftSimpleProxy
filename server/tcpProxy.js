@@ -122,9 +122,46 @@ async function handleClientConnection(clientSocket) {
     logger.log('Connection target port: ' + target.port);
     logger.log('Connection UUID: ' + uuid);
     logger.log('Connection injected IP: ' + ip);
-    
+
     if (ip && domain && username) {
         sendConnectionInfoToManager(ip, domain, username, uuid);
+    }
+
+    const thirdLevelDomain = domain.split('.').slice(-3).join('.');
+    const firewallUrl = `${MANAGER_ADDR}/api/playerfirewall/domain/${thirdLevelDomain}`;
+
+    try {
+        logger.log('Fetching firewall rules...');
+        const firewallResponse = await axios.get(firewallUrl, {
+            headers: {
+                'x-api-key': MANAGER_API_KEY
+            }
+        });
+
+        const firewallRules = firewallResponse.data;
+        logger.log('Firewall rules received: ' + JSON.stringify(firewallRules));
+
+        const isBanned = firewallRules.some(rule => {
+            if (rule.type === 'ipBan' && rule.value === ip) {
+                return true;
+            }
+            if (rule.type === 'usernameBan' && rule.value === username) {
+                return true;
+            }
+             if (rule.type === 'uuidBan' && rule.value === uuid) {
+                return true;
+            }
+            return false;
+        });
+
+        if (isBanned) {
+            logger.warn('Connection blocked by firewall');
+            clientSocket.end('Connection blocked by firewall');
+            return;
+        }
+    } catch (error) {
+        logger.warn('Failed to fetch firewall rules:', error.message);
+        // If the request fails, we don't block the connection
     }
 
     // Set up connection to the remote server
