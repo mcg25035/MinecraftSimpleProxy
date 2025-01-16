@@ -99,16 +99,6 @@ app.delete('/api/routing/:domain', (req, res) => {
     }
 });
 
-app.post('/api/kick/:connectionId', (req, res) => {
-    const connectionId = req.params.connectionId;
-    const connection = tcpProxy.activeConnections[connectionId];
-    if (!connection) {
-        return res.status(404).json({ error: 'Connection not found' });
-    }
-    connection.clientSocket.end('Kicked by server');
-    res.json({ message: `Connection ${connectionId} kicked` });
-});
-
 // Start the API server
 app.listen(PORT, () => {
     console.log(`Express API server listening on port ${PORT}`);
