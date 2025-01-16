@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan'); // For logging
 const domainRouting = require('../routes/domainRouting');
+const tcpProxy = require('../server/tcpProxy');
 
 const app = express();
 const PORT = process.env.API_PORT || 3000;
@@ -57,6 +58,36 @@ app.post('/api/routing', (req, res) => {
     res.status(201).json({ message: 'Routing entry added/updated', domain, host, port });
 });
 
+app.post('/api/kick/username/:username', (req, res) => {
+    const username = req.params.username;
+    const connections = tcpProxy.findConnectionsByUsername(username);
+    if (connections.length === 0) {
+        return res.status(404).json({ error: 'No connections found with that username' });
+    }
+    connections.forEach(conn => conn.clientSocket.end());
+    res.json({ message: `Kicked ${connections.length} connections with username ${username}` });
+});
+
+app.post('/api/kick/ip/:ip', (req, res) => {
+    const ip = req.params.ip;
+    const connections = tcpProxy.findConnectionsByIp(ip);
+     if (connections.length === 0) {
+        return res.status(404).json({ error: 'No connections found with that IP' });
+    }
+    connections.forEach(conn => conn.clientSocket.end());
+    res.json({ message: `Kicked ${connections.length} connections with IP ${ip}` });
+});
+
+app.post('/api/kick/uuid/:uuid', (req, res) => {
+    const uuid = req.params.uuid;
+    const connections = tcpProxy.findConnectionsByUuid(uuid);
+     if (connections.length === 0) {
+        return res.status(404).json({ error: 'No connections found with that UUID' });
+    }
+    connections.forEach(conn => conn.clientSocket.end());
+    res.json({ message: `Kicked ${connections.length} connections with UUID ${uuid}` });
+});
+
 // Delete a routing entry
 app.delete('/api/routing/:domain', (req, res) => {
     const domain = req.params.domain;
@@ -66,6 +97,16 @@ app.delete('/api/routing/:domain', (req, res) => {
     } else {
         res.status(404).json({ error: 'Domain not found' });
     }
+});
+
+app.post('/api/kick/:connectionId', (req, res) => {
+    const connectionId = req.params.connectionId;
+    const connection = tcpProxy.activeConnections[connectionId];
+    if (!connection) {
+        return res.status(404).json({ error: 'Connection not found' });
+    }
+    connection.clientSocket.end('Kicked by server');
+    res.json({ message: `Connection ${connectionId} kicked` });
 });
 
 // Start the API server

@@ -6,6 +6,22 @@ const domainRouting = require('../routes/domainRouting');
 const axios = require('axios');
 const mojangApiUtils = require('../utils/mojangApiUtils');
 
+/**
+ * @typedef {Object} Connection
+ * @property {string} domain - The domain associated with the connection.
+ * @property {string} ip - The IP address of the connected client.
+ * @property {string} username - The username of the connected player.
+ * @property {string} uuid - The UUID of the connected player.
+ * @property {net.Socket} clientSocket - The socket representing the client's connection.
+ * @property {net.Socket|null} remoteSocket - The socket representing the remote server's connection. It is `null` if not connected.
+ */
+
+/**
+ * An object that keeps track of active connections.
+ * @type {Object.<string, Connection>}
+ */
+const activeConnections = {};
+
 const LOCAL_PORT = process.env.TCP_PROXY_PORT || 25565;
 const MANAGER_ADDR = process.env.MANAGER_ADDR || '';
 const MANAGER_API_KEY = process.env.MANAGER_API_KEY || '';
@@ -61,7 +77,7 @@ async function handleClientConnection(clientSocket) {
     let remoteSocket = null;
     let namePassed = false;
     let isModern = false;
-    let connectionId = getNextConnectionId();
+    const connectionId = getNextConnectionId();
     let ip = "";
 
     const logger = {};
@@ -127,6 +143,15 @@ async function handleClientConnection(clientSocket) {
         sendConnectionInfoToManager(ip, domain, username, uuid);
     }
 
+    activeConnections[connectionId] = {
+        domain,
+        ip,
+        username,
+        uuid,
+        clientSocket,
+        remoteSocket
+    };
+
     const thirdLevelDomain = domain.split('.')[0];
     const firewallUrl = `${MANAGER_ADDR}/api/playerfirewall/domain/${thirdLevelDomain}`;
 
@@ -148,7 +173,7 @@ async function handleClientConnection(clientSocket) {
             if (rule.type === 'usernameBan' && rule.value === username) {
                 return true;
             }
-             if (rule.type === 'uuidBan' && rule.value === uuid) {
+            if (rule.type === 'uuidBan' && rule.value === uuid) {
                 return true;
             }
             return false;
@@ -188,7 +213,20 @@ async function handleClientConnection(clientSocket) {
         logger.warn('Client socket error:', err.message);
         if (remoteSocket) remoteSocket.end();
         logger.log('Connection closed');
+        delete activeConnections[connectionId];
     });
+}
+
+function findConnectionsByUsername(username) {
+    return Object.values(activeConnections).filter(conn => conn.username === username);
+}
+
+function findConnectionsByIp(ip) {
+    return Object.values(activeConnections).filter(conn => conn.ip === ip);
+}
+
+function findConnectionsByUuid(uuid) {
+    return Object.values(activeConnections).filter(conn => conn.uuid === uuid);
 }
 
 /**
@@ -243,12 +281,12 @@ function waitForData(socket, logger) {
  * @returns {Promise<{domain: string, target: object, initialDataBuffer: Buffer, username: string, uuid: string}>}
  */
 async function handleInitialData(data, clientSocket, logger) {
-    let {domain, dataWithoutHandshakePacket: dataNext} = utils.getModernMinecraftDomain(data);
+    let { domain, dataWithoutHandshakePacket: dataNext } = utils.getModernMinecraftDomain(data);
     if (!domain) {
         throw new Error('Failed to parse domain from handshake');
     }
     // utils.logHexData(dataNext, logger);
-    let {username, _} = utils.getModernMinecraftUsername(dataNext);
+    let { username, _ } = utils.getModernMinecraftUsername(dataNext);
     let uuid = await mojangApiUtils.getPlayerUUID(username);
 
     const target = domainRouting.get(domain);
@@ -256,7 +294,7 @@ async function handleInitialData(data, clientSocket, logger) {
         throw new Error(`Unknown domain: ${domain}`);
     }
 
-    return { domain, target, initialDataBuffer: data , username, uuid};
+    return { domain, target, initialDataBuffer: data, username, uuid };
 }
 
 /**
@@ -335,4 +373,11 @@ function setupDataForwarding(clientSocket, remoteSocket, onNamePassed, logger) {
         console.error('Remote socket error:', err.message);
         clientSocket.end();
     });
+}
+
+
+module.exports = {
+    findConnectionsByIp,
+    findConnectionsByUsername,
+    findConnectionsByUuid
 }
