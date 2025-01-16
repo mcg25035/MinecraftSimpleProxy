@@ -219,19 +219,19 @@ async function handleClientConnection(clientSocket) {
 
 function findConnectionsByUsername(username, targetPort) {
     return Object.values(activeConnections).filter((conn) => {
-        return conn.ip === ip && conn.remotePort === targetPort
+        return conn.username === username && conn.remotePort === Number(targetPort)
     });
 }
 
 function findConnectionsByIp(ip, targetPort) {
     return Object.values(activeConnections).filter((conn) => {
-        return conn.ip === ip && conn.remotePort === targetPort
+        return conn.ip === ip && conn.remotePort === Number(targetPort)
     });
 }
 
 function findConnectionsByUuid(uuid, targetPort) {
     return Object.values(activeConnections).filter((conn) => {
-        return conn.uuid === uuid && conn.remotePort === targetPort
+        return conn.uuid === uuid && conn.remotePort === Number(targetPort)
     });
 }
 
