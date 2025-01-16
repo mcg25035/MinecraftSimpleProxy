@@ -14,6 +14,7 @@ const mojangApiUtils = require('../utils/mojangApiUtils');
  * @property {string} uuid - The UUID of the connected player.
  * @property {net.Socket} clientSocket - The socket representing the client's connection.
  * @property {number} remotePort
+ * @property {number} connectionId
  */
 
 /**
@@ -199,7 +200,8 @@ async function handleClientConnection(clientSocket) {
         username,
         uuid,
         clientSocket,
-        remotePort: target.port
+        remotePort: target.port,
+        connectionId
     };
 
     logger.log('Connection established');
@@ -213,7 +215,6 @@ async function handleClientConnection(clientSocket) {
         logger.warn('Client socket error:', err.message);
         if (remoteSocket) remoteSocket.end();
         logger.log('Connection closed');
-        delete activeConnections[connectionId];
     });
 }
 
@@ -233,6 +234,14 @@ function findConnectionsByUuid(uuid, targetPort) {
     return Object.values(activeConnections).filter((conn) => {
         return conn.uuid === uuid && conn.remotePort === Number(targetPort)
     });
+}
+
+function deleteConnection(connectionId) {
+    if (!activeConnections[connectionId]) return false;
+
+    activeConnections[connectionId].clientSocket.end();
+    delete activeConnections[connectionId];
+    return true;
 }
 
 /**
@@ -385,5 +394,6 @@ function setupDataForwarding(clientSocket, remoteSocket, onNamePassed, logger) {
 module.exports = {
     findConnectionsByIp,
     findConnectionsByUsername,
-    findConnectionsByUuid
+    findConnectionsByUuid,
+    deleteConnection
 }

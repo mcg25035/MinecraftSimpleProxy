@@ -65,7 +65,9 @@ app.put('/api/kick/username/:username', (req, res) => {
     if (connections.length === 0) {
         return res.status(404).json({ error: 'No connections found with that username' });
     }
-    connections.forEach(conn => conn.clientSocket.end());
+    connections.forEach(conn => {
+        tcpProxy.deleteConnection(conn.connectionId)
+    });
     res.json({ message: `Kicked ${connections.length} connections with username ${username}` });
 });
 
@@ -73,10 +75,13 @@ app.put('/api/kick/ip/:ip', (req, res) => {
     const ip = req.params.ip;
     const targetPort = req.query.targetPort;
     const connections = tcpProxy.findConnectionsByIp(ip, targetPort);
-     if (connections.length === 0) {
+    if (connections.length === 0) {
         return res.status(404).json({ error: 'No connections found with that IP' });
     }
-    connections.forEach(conn => conn.clientSocket.end());
+    connections.forEach(conn => {
+        tcpProxy.deleteConnection(conn.connectionId)
+    });
+    
     res.json({ message: `Kicked ${connections.length} connections with IP ${ip}` });
 });
 
@@ -84,10 +89,12 @@ app.put('/api/kick/uuid/:uuid', (req, res) => {
     const uuid = req.params.uuid;
     const targetPort = req.query.targetPort;
     const connections = tcpProxy.findConnectionsByUuid(uuid, targetPort);
-     if (connections.length === 0) {
+    if (connections.length === 0) {
         return res.status(404).json({ error: 'No connections found with that UUID' });
     }
-    connections.forEach(conn => conn.clientSocket.end());
+    connections.forEach(conn => {
+        tcpProxy.deleteConnection(conn.connectionId)
+    });
     res.json({ message: `Kicked ${connections.length} connections with UUID ${uuid}` });
 });
 
