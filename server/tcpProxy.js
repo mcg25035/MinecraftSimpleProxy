@@ -123,7 +123,7 @@ async function handleClientConnection(clientSocket) {
         return;
     }
 
-    let domain, target, initialDataBuffer, username;
+    let domain, target, initialDataBuffer, username, uuid;
     try {
         ({ domain, target, initialDataBuffer, username, uuid } = await handleInitialData(initialData, clientSocket, logger.log));
     }
