@@ -58,7 +58,7 @@ app.post('/api/routing', (req, res) => {
     res.status(201).json({ message: 'Routing entry added/updated', domain, host, port });
 });
 
-app.put('/api/kick/username/:username', (req, res) => {
+app.delete('/api/kick/username/:username', (req, res) => {
     const username = req.params.username;
     const targetPort = req.query.targetPort;
     const connections = tcpProxy.findConnectionsByUsername(username, targetPort);
@@ -71,7 +71,7 @@ app.put('/api/kick/username/:username', (req, res) => {
     res.json({ message: `Kicked ${connections.length} connections with username ${username}` });
 });
 
-app.put('/api/kick/ip/:ip', (req, res) => {
+app.delete('/api/kick/ip/:ip', (req, res) => {
     const ip = req.params.ip;
     const targetPort = req.query.targetPort;
     const connections = tcpProxy.findConnectionsByIp(ip, targetPort);
@@ -85,7 +85,7 @@ app.put('/api/kick/ip/:ip', (req, res) => {
     res.json({ message: `Kicked ${connections.length} connections with IP ${ip}` });
 });
 
-app.put('/api/kick/uuid/:uuid', (req, res) => {
+app.delete('/api/kick/uuid/:uuid', (req, res) => {
     const uuid = req.params.uuid;
     const targetPort = req.query.targetPort;
     const connections = tcpProxy.findConnectionsByUuid(uuid, targetPort);
