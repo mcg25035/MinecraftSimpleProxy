@@ -125,7 +125,7 @@ async function handleClientConnection(clientSocket) {
 
     let domain, target, initialDataBuffer, username, uuid;
     try {
-        ({ domain, target, initialDataBuffer, username, uuid } = await handleInitialData(initialData, clientSocket, logger.log));
+        ({ domain, target, initialDataBuffer, username } = await handleInitialData(initialData, clientSocket, logger.log));
     }
     catch (err) {
         logger.warn(err.message);
@@ -133,7 +133,8 @@ async function handleClientConnection(clientSocket) {
         return;
     }
 
-    if (!uuid) {
+    if (username) uuid = await mojangApiUtils.getPlayerUUID(username);
+    if (username && !uuid) {
         logger.warn('Failed to get player UUID');
         clientSocket.end('');
         return;
@@ -146,7 +147,7 @@ async function handleClientConnection(clientSocket) {
     logger.log('Connection UUID: ' + uuid);
     logger.log('Connection injected IP: ' + ip);
 
-    if (ip && domain && username) {
+    if (ip && domain && username && uuid) {
         sendConnectionInfoToManager(ip, domain, username, uuid);
     }
 
@@ -299,7 +300,7 @@ function waitForData(socket, logger) {
  * @param {Buffer} data - Initial data sent by the client
  * @param {net.Socket} clientSocket - Client socket connection
  * @param {Function: (message: string) => void} logger - Logger function
- * @returns {Promise<{domain: string, target: object, initialDataBuffer: Buffer, username: string, uuid: string}>}
+ * @returns {Promise<{domain: string, target: object, initialDataBuffer: Buffer, username: string}>}
  */
 async function handleInitialData(data, clientSocket, logger) {
     let { domain, dataWithoutHandshakePacket: dataNext } = utils.getModernMinecraftDomain(data);
@@ -308,16 +309,13 @@ async function handleInitialData(data, clientSocket, logger) {
     }
     // utils.logHexData(dataNext, logger);
     let { username, _ } = utils.getModernMinecraftUsername(dataNext);
-    console.log('Username:', username);
-    let uuid = await mojangApiUtils.getPlayerUUID(username);
-    console.log('UUID:', uuid);
 
     const target = domainRouting.get(domain);
     if (!target) {
         throw new Error(`Unknown domain: ${domain}`);
     }
 
-    return { domain, target, initialDataBuffer: data, username, uuid };
+    return { domain, target, initialDataBuffer: data, username};
 }
 
 /**
