@@ -302,7 +302,9 @@ async function handleInitialData(data, clientSocket, logger) {
     }
     // utils.logHexData(dataNext, logger);
     let { username, _ } = utils.getModernMinecraftUsername(dataNext);
+    console.log('Username:', username);
     let uuid = await mojangApiUtils.getPlayerUUID(username);
+    console.log('UUID:', uuid);
 
     const target = domainRouting.get(domain);
     if (!target) {
