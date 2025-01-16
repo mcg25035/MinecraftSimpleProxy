@@ -13,7 +13,7 @@ const mojangApiUtils = require('../utils/mojangApiUtils');
  * @property {string} username - The username of the connected player.
  * @property {string} uuid - The UUID of the connected player.
  * @property {net.Socket} clientSocket - The socket representing the client's connection.
- * @property {net.Socket|null} remoteSocket - The socket representing the remote server's connection. It is `null` if not connected.
+ * @property {number} remotePort
  */
 
 /**
@@ -143,15 +143,6 @@ async function handleClientConnection(clientSocket) {
         sendConnectionInfoToManager(ip, domain, username, uuid);
     }
 
-    activeConnections[connectionId] = {
-        domain,
-        ip,
-        username,
-        uuid,
-        clientSocket,
-        remoteSocket
-    };
-
     const thirdLevelDomain = domain.split('.')[0];
     const firewallUrl = `${MANAGER_ADDR}/api/playerfirewall/domain/${thirdLevelDomain}`;
 
@@ -202,6 +193,15 @@ async function handleClientConnection(clientSocket) {
         return;
     }
 
+    activeConnections[connectionId] = {
+        domain,
+        ip,
+        username,
+        uuid,
+        clientSocket,
+        remotePort: target.port
+    };
+
     logger.log('Connection established');
     // Set up data forwarding
     setupDataForwarding(clientSocket, remoteSocket, () => {
@@ -217,16 +217,22 @@ async function handleClientConnection(clientSocket) {
     });
 }
 
-function findConnectionsByUsername(username) {
-    return Object.values(activeConnections).filter(conn => conn.username === username);
+function findConnectionsByUsername(username, targetPort) {
+    return Object.values(activeConnections).filter((conn) => {
+        return conn.ip === ip && conn.remotePort === targetPort
+    });
 }
 
-function findConnectionsByIp(ip) {
-    return Object.values(activeConnections).filter(conn => conn.ip === ip);
+function findConnectionsByIp(ip, targetPort) {
+    return Object.values(activeConnections).filter((conn) => {
+        return conn.ip === ip && conn.remotePort === targetPort
+    });
 }
 
-function findConnectionsByUuid(uuid) {
-    return Object.values(activeConnections).filter(conn => conn.uuid === uuid);
+function findConnectionsByUuid(uuid, targetPort) {
+    return Object.values(activeConnections).filter((conn) => {
+        return conn.uuid === uuid && conn.remotePort === targetPort
+    });
 }
 
 /**

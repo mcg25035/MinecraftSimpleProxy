@@ -58,9 +58,10 @@ app.post('/api/routing', (req, res) => {
     res.status(201).json({ message: 'Routing entry added/updated', domain, host, port });
 });
 
-app.post('/api/kick/username/:username', (req, res) => {
+app.put('/api/kick/username/:username', (req, res) => {
     const username = req.params.username;
-    const connections = tcpProxy.findConnectionsByUsername(username);
+    const targetPort = req.query.targetPort;
+    const connections = tcpProxy.findConnectionsByUsername(username, targetPort);
     if (connections.length === 0) {
         return res.status(404).json({ error: 'No connections found with that username' });
     }
@@ -68,9 +69,10 @@ app.post('/api/kick/username/:username', (req, res) => {
     res.json({ message: `Kicked ${connections.length} connections with username ${username}` });
 });
 
-app.post('/api/kick/ip/:ip', (req, res) => {
+app.put('/api/kick/ip/:ip', (req, res) => {
     const ip = req.params.ip;
-    const connections = tcpProxy.findConnectionsByIp(ip);
+    const targetPort = req.query.targetPort;
+    const connections = tcpProxy.findConnectionsByIp(ip, targetPort);
      if (connections.length === 0) {
         return res.status(404).json({ error: 'No connections found with that IP' });
     }
@@ -78,9 +80,10 @@ app.post('/api/kick/ip/:ip', (req, res) => {
     res.json({ message: `Kicked ${connections.length} connections with IP ${ip}` });
 });
 
-app.post('/api/kick/uuid/:uuid', (req, res) => {
+app.put('/api/kick/uuid/:uuid', (req, res) => {
     const uuid = req.params.uuid;
-    const connections = tcpProxy.findConnectionsByUuid(uuid);
+    const targetPort = req.query.targetPort;
+    const connections = tcpProxy.findConnectionsByUuid(uuid, targetPort);
      if (connections.length === 0) {
         return res.status(404).json({ error: 'No connections found with that UUID' });
     }
