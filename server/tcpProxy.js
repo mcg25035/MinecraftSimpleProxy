@@ -133,12 +133,13 @@ async function handleClientConnection(clientSocket) {
         return;
     }
 
-    if (username) uuid = await mojangApiUtils.getPlayerUUID(username);
+    if (username) uuid = (await mojangApiUtils.getPlayerUUID(username));
     if (username && !uuid) {
         logger.warn('Failed to get player UUID');
         clientSocket.end('');
         return;
     }
+    if (uuid) uuid = uuid.replace(/-/g, '');
 
     logger.log('Connection target domain: ' + domain);
     logger.log('Connection player: ' + username);
