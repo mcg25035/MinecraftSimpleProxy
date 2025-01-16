@@ -133,6 +133,12 @@ async function handleClientConnection(clientSocket) {
         return;
     }
 
+    if (!uuid) {
+        logger.warn('Failed to get player UUID');
+        clientSocket.end('');
+        return;
+    }
+
     logger.log('Connection target domain: ' + domain);
     logger.log('Connection player: ' + username);
     logger.log('Connection target host: ' + target.host);
