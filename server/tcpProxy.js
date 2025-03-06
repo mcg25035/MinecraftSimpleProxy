@@ -197,6 +197,9 @@ async function handleClientConnection(clientSocket) {
     }
     catch (err) {
         logger.warn('Failed to connect to remote server:', err.message);
+        if (clientSocket.closed) return;
+        if (clientSocket.destroyed) return;
+        if (!clientSocket.writable) return;
         clientSocket.end("Failed to connect to remote server");
         return;
     }
