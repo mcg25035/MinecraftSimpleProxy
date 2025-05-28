@@ -61,7 +61,13 @@ async function sendConnectionInfoToManager(ip, domain, username, uuid) {
 }
 
 // Start the TCP Proxy server
-const server = net.createServer(handleClientConnection);
+const server = net.createServer((socket)=>{
+    try{handleClientConnection(socket)}
+    catch (error) {
+        console.error('[Emergency] Error handling client connection :', error);
+        socket.end("Internal server error");
+    }
+});
 
 server.listen(LOCAL_PORT, () => {
     console.log(`TCP Proxy server listening on port ${LOCAL_PORT}`);
