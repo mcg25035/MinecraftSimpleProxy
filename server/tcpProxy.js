@@ -61,8 +61,8 @@ async function sendConnectionInfoToManager(ip, domain, username, uuid) {
 }
 
 // Start the TCP Proxy server
-const server = net.createServer((socket)=>{
-    try{handleClientConnection(socket)}
+const server = net.createServer(async (socket)=>{
+    try{await handleClientConnection(socket)}
     catch (error) {
         console.error('[Emergency] Error handling client connection :', error);
         socket.end("Internal server error");
