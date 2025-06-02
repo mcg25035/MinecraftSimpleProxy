@@ -405,7 +405,6 @@ function setupDataForwarding(clientSocket, remoteSocket, onNamePassed, logger) {
     });
 }
 
-
 module.exports = {
     findConnectionsByIp,
     findConnectionsByUsername,
