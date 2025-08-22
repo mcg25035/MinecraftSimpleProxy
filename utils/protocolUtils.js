@@ -1,5 +1,3 @@
-// protocolUtils.js
-
 /**
  * Parse data in VarInt format
  * @param {Buffer} buffer - Buffer to parse
