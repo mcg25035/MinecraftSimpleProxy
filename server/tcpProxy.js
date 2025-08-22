@@ -384,11 +384,13 @@ function setupDataForwarding(clientSocket, remoteSocket, onNamePassed, logger) {
 
     // Close remote connection when the client disconnects
     clientSocket.on('end', () => {
+        logger('Client disconnected, closing remote connection');
         remoteSocket.end();
     });
 
     // Close client connection when the remote server disconnects
     remoteSocket.on('end', () => {
+        logger('Remote server disconnected, closing client connection');
         clientSocket.end();
     });
 
