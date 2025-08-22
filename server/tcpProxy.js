@@ -370,10 +370,10 @@ function setupRemoteConnection(target, initialData, clientSocket, namePassed, lo
 function setupDataForwarding(clientSocket, remoteSocket, onNamePassed, logger) {
     // Forward data from client to remote server
     clientSocket.on('data', (data) => {
-        // if (!onNamePassed.called && data.toString().includes('codingbear')) {
-        //     onNamePassed();
-        //     utils.logHexData(data, logger);
-        // }
+        if (!onNamePassed.called && data.toString().includes('codingbear')) {
+            onNamePassed();
+            utils.logHexData(data, logger);
+        }
         
         // logger('Forwarding data from client to remote server: ');
         // utils.logHexData(data, logger);
@@ -385,10 +385,10 @@ function setupDataForwarding(clientSocket, remoteSocket, onNamePassed, logger) {
         
         // logger('Forwarding data from remote server to client: ');
         // utils.logHexData(data, logger);
-        // if (!onNamePassed.called && data.toString().includes('codingbear')) {
-        //     onNamePassed();
-        //     utils.logHexData(data, logger);
-        // }
+        if (!onNamePassed.called && data.toString().includes('codingbear')) {
+            onNamePassed();
+            utils.logHexData(data, logger);
+        }
         clientSocket.write(data);
     });
 
