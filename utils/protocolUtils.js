@@ -104,12 +104,12 @@ function parseModernHandshake(data) {
  * @returns {string} - Cleaned domain name
  */
 function sanitizeDomain(domain) {
-    let domain = domain
+    let domain_ = domain
       .split("\0")[0];
-    if (domain[domain.length - 1] === '.') {
-        domain = domain.slice(0, -1);
+    if (domain_[domain_.length - 1] === '.') {
+        domain_ = domain_.slice(0, -1);
     }
-    return domain;
+    return domain_;
 }
   
 
