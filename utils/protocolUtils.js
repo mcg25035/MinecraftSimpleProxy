@@ -104,9 +104,13 @@ function parseModernHandshake(data) {
  * @returns {string} - Cleaned domain name
  */
 function sanitizeDomain(domain) {
-    return domain
+    let domain = domain
       .split("\0")[0];
-  }
+    if (domain[domain.length - 1] === '.') {
+        domain = domain.slice(0, -1);
+    }
+    return domain;
+}
   
 
 /**
