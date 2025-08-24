@@ -105,15 +105,7 @@ function parseModernHandshake(data) {
  */
 function sanitizeDomain(domain) {
     return domain
-      // Remove all non-alphanumeric characters, dashes, and dots
-      .replace(/[^a-zA-Z0-9-.]/g, '')
-      // Detect and remove Forge/NeoForge suffixes (FML suffix)
-      .replace(/FML\d*$/, '')
-      .replace(/FORGE*$/, '')
-      // Remove whitespace from both ends
-      .trim()
-      // Remove trailing dots
-      .replace(/\.+$/, '');
+      .split("\0")[0];
   }
   
 
