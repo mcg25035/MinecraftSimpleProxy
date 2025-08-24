@@ -109,6 +109,7 @@ function sanitizeDomain(domain) {
       .replace(/[^a-zA-Z0-9-.]/g, '')
       // Detect and remove Forge/NeoForge suffixes (FML suffix)
       .replace(/FML\d*$/, '')
+      .replace(/FORGE*$/, '')
       // Remove whitespace from both ends
       .trim()
       // Remove trailing dots

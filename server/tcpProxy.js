@@ -115,6 +115,7 @@ async function handleClientConnection(clientSocket) {
     } catch (err) {
         logger.warn(err.message);
         clientSocket.end(err.message);
+        utils.logHexData(initialData, logger.log);
         return;
     }
 
